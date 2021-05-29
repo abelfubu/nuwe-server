@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 
+// Importamos los métodos creados en el controlador
 const {
     createRepo,
     getAllRepos,

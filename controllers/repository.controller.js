@@ -79,8 +79,18 @@ exports.getAllRepos = async (req, res) => {
     })
 }
 
-exports.updateRepo = (req, res) => {
-    res.json({message: 'Updating Repo'});
+exports.updateRepo = async (req, res) => {
+    let {repoId} = req.params;
+
+    await Repository.findByIdAndUpdate({_id: repoId}, {$set: req.body}, {new: true}, (err, repo) => {
+        if (err || !repo) {
+            return res.status(400).json({
+              error: "Repository couldn't be updated",
+            });
+        }
+
+        res.json(repo);
+    });
 }
 
 exports.deleteRepo = async (req, res) => {
