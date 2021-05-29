@@ -108,6 +108,6 @@ Se utilizaron las siguientes rutas para realizar el CRUD (create, read, update &
 
 > **: Rutas que necesitan un **req.headers.autorization\*\* tipo Bearer token para ser autenticados.
 
-## License
+## Licencia
 
 [MIT](https://choosealicense.com/licenses/mit/)
