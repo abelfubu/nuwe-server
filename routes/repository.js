@@ -19,7 +19,7 @@ router.post('/', authToken, createRepo);
 router.get('/', getAllRepos);
 
 // Ruta para obtener todos los repositorios de un usuario
-router.get('/getRepoByUser/:userId', authToken, getReposFromUser);
+router.get('/getRepoByUser', authToken, getReposFromUser);
 
 // Ruta para obtener un repositorio
 router.get('/getRepo/:repoId', authToken, getOneRepo);
