@@ -1,4 +1,7 @@
+require('dotenv').config();
+const jwt = require('jsonwebtoken');
 const User = require('../models/user.model');
+const Repository = require('../models/repository.model');
 const { errorHandler } = require('../helpers/dbErrorHandler');
 
 /**
@@ -17,9 +20,16 @@ exports.createUser = async (req, res) => {
             });
         }
 
+        // Se oculta la contraseña
         user.password = undefined;
 
-        res.json(user);
+        //generate a signed token with user id and secret
+        const token = jwt.sign({_id: user._id}, process.env.JWT_SECRET);
+
+        // persist the token as 't' in cookie with expiry date
+        res.cookie("github_token", token, { expire: new Date() + 9999 });
+
+        res.json({token, user});
     });
 }
 
@@ -71,10 +81,9 @@ exports.getAllUsers = async (req, res) => {
  * @param {Object} res 
  */
 exports.updateUser = async (req, res) => {
-    let {userId} = req.params;
-
+    // Encuentra el usuario con el ID proporcionado y lo actualiza
     await User.findOneAndUpdate(
-        {_id: userId}, 
+        {_id: req.user._id}, 
         {$set: req.body}, 
         {new: true, select: '-password'}, 
         (err, user) => {
@@ -84,27 +93,49 @@ exports.updateUser = async (req, res) => {
             });
         }
 
+        // Devuelve el usuario encontrado y editado
         res.json(user);
     })
     
 }
 
 /**
- * Encuentra a un usuario en base a su ID y lo elimina de la base de datos
+ * Encuentra a un usuario en base a su ID y lo elimina de la base de datos,
+ * junto a los repasitorios asociados al mismo
  * @param {Object} req 
  * @param {Object} res 
  */
 exports.deleteUser = async (req, res) => {
-    let { userId } = req.params;
-
-    await User.findByIdAndDelete({_id: userId}, '-password', (err, user) => {
+    // Encuentra al usuario por id y lo elimina, al mismo tiempo que lo da como respuesta
+    await User.findByIdAndDelete({_id: req.user._id}, async (err, user) => {
         if (err || !user) {
             return res.status(400).json({
               error: "User couldn't be deleted",
             });
         }
 
-        res.json({message: 'User succesfully deleted', user});
+        // Con el id del usuario, se buscan todos los repositorios que tengan el mismo
+        // ID de autor y se eliminan
+        await Repository.deleteMany({ author: user._id }, (err, repos) => {
+            if (err) {
+                return res.status(400).json({
+                    error: "Repositories couldn't be deleted",
+                });
+            }
+
+            console.log(repos);
+
+             // Devuelve una contraseña vacia
+            user.password = undefined;
+
+            // limpia la cookie
+            res.clearCookie("github_token");
+
+            // devuelve el usuario que ha sido eliminado
+            res.json({message: `User and ${repos.deletedCount} Repositories succesfully deleted`, user});
+        })
+
+       
     })
     
 }

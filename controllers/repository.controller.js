@@ -8,10 +8,9 @@ const User = require('../models/user.model');
  * @param {Object} res 
  */
 exports.createRepo = async (req, res) => {
-    let {userId} = req.params;
 
     req.body.stack = JSON.parse(req.body.stack);
-    req.body.author = userId;
+    req.body.author = req.user._id;
 
     // Se crea el objeto del repositorio siguiendo el model establecido
     let repo = new Repository(req.body);
@@ -26,7 +25,7 @@ exports.createRepo = async (req, res) => {
 
         // Se busca al usuario por su ID y se incrementa el número de repositorios en 1
         await User.findByIdAndUpdate(
-            {_id: userId}, 
+            {_id: req.user._id}, 
             {$inc: { repos: 1 }}).exec((err, user) => {
                 if (err || !user) {
                     return res.status(400).json({
@@ -64,9 +63,8 @@ exports.getOneRepo = async (req, res) => {
  * @param {Object} res 
  */
 exports.getReposFromUser = async (req, res) => {
-    let {userId} = req.params;
 
-    await Repository.find({author: userId}).exec((err, repos) => {
+    await Repository.find({author: req.user._id}).exec((err, repos) => {
         if (err) {
             return res.status(400).json({
               error: 'Something went wrong',

@@ -3,6 +3,7 @@ const app = express();
 const morgan = require('morgan');
 const cors = require('cors');
 const path = require('path');
+const cookieParser = require('cookie-parser');
 
 const { connectDB } = require('./config/dbConnection');
 
@@ -13,10 +14,12 @@ connectDB();
 app.set('port', process.env.PORT || 3000);
 
 // Configuración del servidor con express
+app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan('dev'));
 app.use(cors());
+
 
 // Ruta principal de carga
 app.get('/', (req, res) => {

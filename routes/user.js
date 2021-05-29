@@ -10,20 +10,21 @@ const {
 } = require('../controllers/user.controller');
 
 const { encrypt } = require('../middleware/encryptPassword');
+const { authToken } = require('../middleware/verifyToken');
 
 // Ruta para crear un usuario
 router.post('/', encrypt, createUser);
 
 // Ruta para obtener todos los usuarios
-router.get('/', getAllUsers);
+router.get('/', authToken, getAllUsers);
 
 // Ruta para obtener un usuario en base a su ID
-router.get('/:userId', getOneUser);
+router.get('/:userId', authToken, getOneUser);
 
 // Ruta para actualizar los datos del usuario
-router.put('/:userId', encrypt, updateUser);
+router.put('/', authToken, encrypt, updateUser);
 
 // Ruta para eliminar a un usuario
-router.delete('/:userId', deleteUser);
+router.delete('/', authToken, deleteUser);
 
 module.exports = router;
