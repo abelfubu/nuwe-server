@@ -1,15 +1,22 @@
 const Repository = require('../models/repository.model');
 const User = require('../models/user.model');
 
+/**
+ * Crea un repositorio en la base de datos e incrementa en 1 el número 
+ * de repositorios del usuario.
+ * @param {Object} req 
+ * @param {Object} res 
+ */
 exports.createRepo = async (req, res) => {
     let {userId} = req.params;
 
     req.body.stack = JSON.parse(req.body.stack);
     req.body.author = userId;
 
+    // Se crea el objeto del repositorio siguiendo el model establecido
     let repo = new Repository(req.body);
 
-    
+    // Se guarda el objeto en la base de datos
     await repo.save(async (err, repo) => {
         if (err) {
             return res.status(400).json({
@@ -17,6 +24,7 @@ exports.createRepo = async (req, res) => {
             });
         }
 
+        // Se busca al usuario por su ID y se incrementa el número de repositorios en 1
         await User.findByIdAndUpdate(
             {_id: userId}, 
             {$inc: { repos: 1 }}).exec((err, user) => {
@@ -31,6 +39,11 @@ exports.createRepo = async (req, res) => {
     });
 }
 
+/**
+ * Obtiene un repositorio a partir de su ID
+ * @param {Object} req 
+ * @param {Object} res 
+ */
 exports.getOneRepo = async (req, res) => {
     let {repoId} = req.params;
 
@@ -45,6 +58,11 @@ exports.getOneRepo = async (req, res) => {
     })
 }
 
+/**
+ * Obtiene todos los repositorios relacionados a un mismo ID de usuario
+ * @param {Object} req 
+ * @param {Object} res 
+ */
 exports.getReposFromUser = async (req, res) => {
     let {userId} = req.params;
 
@@ -63,6 +81,11 @@ exports.getReposFromUser = async (req, res) => {
     })
 }
 
+/**
+ * Obtiene todos los repositorios registrados en la base de datos
+ * @param {Object} req 
+ * @param {Object} res 
+ */
 exports.getAllRepos = async (req, res) => {
     await Repository.find().exec((err, repos) => {
         if (err) {
@@ -79,6 +102,11 @@ exports.getAllRepos = async (req, res) => {
     })
 }
 
+/**
+ * Encuentra el repositorio por su ID y lo actualiza
+ * @param {Object} req 
+ * @param {Object} res 
+ */
 exports.updateRepo = async (req, res) => {
     let {repoId} = req.params;
 
@@ -93,9 +121,16 @@ exports.updateRepo = async (req, res) => {
     });
 }
 
+/**
+ * Elimina el repositorio de la base de datos y disminuye el número de repos del usuario
+ * que le corresponde
+ * @param {Object} req 
+ * @param {Object} res 
+ */
 exports.deleteRepo = async (req, res) => {
     let {repoId} = req.params;
 
+    // Encuentra y elimina el repositorio por su ID
     await Repository.findByIdAndDelete({_id: repoId}, async (err, repo) => {
         if (err || !repo) {
             return res.status(400).json({
@@ -103,6 +138,8 @@ exports.deleteRepo = async (req, res) => {
             });
         }
 
+        // Encuentra al usuario por el id de referencia presente en el repositorio eliminado
+        // y disminuye en 1 el número de sus repositorios
         await User.findByIdAndUpdate(
             {_id: repo.author}, 
             {$inc: { repos: -1 }}).exec((err, user) => {

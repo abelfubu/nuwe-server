@@ -31,14 +31,12 @@ exports.createUser = async (req, res) => {
 exports.getOneUser = async (req, res) => {
     let {userId} = req.params;
 
-    await User.findById(userId).exec((err, user) => {
+    await User.findById(userId, '-password').exec((err, user) => {
         if (err || !user) {
             return res.status(400).json({
               error: 'User not found',
             });
         }
-
-        user.password = undefined;
 
         res.json(user);
     })
@@ -52,14 +50,12 @@ exports.getOneUser = async (req, res) => {
  */
 exports.getAllUsers = async (req, res) => {
 
-    await User.find().exec((err, users) => {
+    await User.find({}, '-password').exec((err, users) => {
         if (err) {
             return res.status(400).json({
               error: 'Something went wrong',
             });
         }
-
-        users.forEach(user => user.password = undefined);
 
         if (users.length == 0) {
             res.json({message: 'No users were found here'})
@@ -77,14 +73,16 @@ exports.getAllUsers = async (req, res) => {
 exports.updateUser = async (req, res) => {
     let {userId} = req.params;
 
-    await User.findOneAndUpdate({_id: userId}, {$set: req.body}, {new: true}, (err, user) => {
+    await User.findOneAndUpdate(
+        {_id: userId}, 
+        {$set: req.body}, 
+        {new: true, select: '-password'}, 
+        (err, user) => {
         if (err || !user) {
             return res.status(400).json({
               error: "User couldn't be updated",
             });
         }
-
-        user.password = undefined;
 
         res.json(user);
     })
@@ -99,14 +97,12 @@ exports.updateUser = async (req, res) => {
 exports.deleteUser = async (req, res) => {
     let { userId } = req.params;
 
-    await User.findByIdAndDelete({_id: userId}, (err, user) => {
+    await User.findByIdAndDelete({_id: userId}, '-password', (err, user) => {
         if (err || !user) {
             return res.status(400).json({
               error: "User couldn't be deleted",
             });
         }
-
-        user.password = undefined;
 
         res.json({message: 'User succesfully deleted', user});
     })
