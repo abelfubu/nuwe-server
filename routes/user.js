@@ -1,30 +1,34 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
 
 const {
-    createUser,
-    getOneUser,
-    getAllUsers,
-    updateUser,
-    deleteUser
-} = require('../controllers/user.controller');
+  createUser,
+  getOneUser,
+  getAllUsers,
+  updateUser,
+  deleteUser,
+  login,
+} = require("../controllers/user.controller");
 
-const { encrypt } = require('../middleware/encryptPassword');
-const { authToken } = require('../middleware/verifyToken');
+const { encrypt } = require("../middleware/encryptPassword");
+const { authToken } = require("../middleware/verifyToken");
 
 // Ruta para crear un usuario
-router.post('/', encrypt, createUser);
+router.post("/", encrypt, createUser);
+
+// Ruta para crear un usuario
+router.post("/login", login);
 
 // Ruta para obtener todos los usuarios
-router.get('/', authToken, getAllUsers);
+router.get("/", authToken, getAllUsers);
 
 // Ruta para obtener un usuario en base a su ID
-router.get('/:userId', authToken, getOneUser);
+router.get("/:userId", authToken, getOneUser);
 
 // Ruta para actualizar los datos del usuario
-router.put('/', authToken, encrypt, updateUser);
+router.put("/", authToken, encrypt, updateUser);
 
 // Ruta para eliminar a un usuario
-router.delete('/', authToken, deleteUser);
+router.delete("/", authToken, deleteUser);
 
 module.exports = router;
